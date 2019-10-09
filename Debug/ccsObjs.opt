@@ -1,0 +1,1 @@
+"./main.o" "./serial_flash.o" "./spi.o" "./timerA.o" -T"../msp430g2553.ld" -Wl,--start-group -lgcc -lc -Wl,--end-group 
