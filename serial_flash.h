@@ -9,6 +9,9 @@ typedef struct SerialFlash_Structure {
     unsigned char BitMask;
 } SerialFlash;
 
+#define ENABLE_SERIAL_FLASH *(Component->PortRegister) &= ~Component->BitMask
+#define DISABLE_SERIAL_FLASH *(Component->PortRegister) |= Component->BitMask
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Chip Enable for SPI Serial Flash Memory
  * on GPIO board, component U3
@@ -21,6 +24,8 @@ typedef struct SerialFlash_Structure {
 #define CHIP_ENABLE_U3_PORT				P1OUT
 #define CHIP_ENABLE_U3_DDR				P1DIR
 
+#define CHIP_U3_OUT CHIP_ENABLE_U3_DDR |= CHIP_ENABLE_U3_BIT
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Chip Enable for SPI Serial Flash Memory
  * on GPIO board, component U2
@@ -32,6 +37,8 @@ typedef struct SerialFlash_Structure {
 #define CHIP_ENABLE_U2_BIT				BIT0
 #define CHIP_ENABLE_U2_PORT				P2OUT
 #define CHIP_ENABLE_U2_DDR				P2DIR
+
+#define CHIP_U2_OUT CHIP_ENABLE_U2_DDR |= CHIP_ENABLE_U2_BIT
 
 #define FLASH_MEMORY_SIZE 0x10000	// 512 Kbits = 64K bytes
 #define FLASH_SECTOR_SIZE 0x1000	// 4 Kbytes
@@ -67,6 +74,31 @@ typedef struct SerialFlash_Structure {
 #define QUARTER_0xC000_0xFFFF 	1
 #define HALF_0x8000_0xFFFF 		2
 #define FULL 					3
+
+#define HOLD_U3_BIT     BIT2
+#define HOLD_U3_PORT    P2OUT
+#define HOLD_U3_DIR     P2DIR
+
+#define ENABLE_HOLD_U3 HOLD_U3_PORT &= ~HOLD_U3_BIT
+#define DISABLE_HOLD_U3 HOLD_U3_PORT |= HOLD_U3_BIT
+#define HOLD_U3_OUT HOLD_U3_DIR |= HOLD_U3_BIT
+
+#define HOLD_U2_BIT     BIT3
+#define HOLD_U2_PORT    P2OUT
+#define HOLD_U2_DIR     P2DIR
+
+#define ENABLE_HOLD_U2 HOLD_U2_PORT &= ~HOLD_U2_BIT
+#define DISABLE_HOLD_U2 HOLD_U2_PORT |= HOLD_U2_BIT
+#define HOLD_U2_OUT HOLD_U2_DIR |= HOLD_U2_BIT
+
+
+#define WRITE_PROTECT_BIT   BIT1
+#define WRITE_PROTECT_PORT  P2OUT
+#define WRITE_PROTECT_DIR   P2DIR
+
+#define ENABLE_WRITE_PROTECT WRITE_PROTECT_PORT &= ~WRITE_PROTECT_BIT
+#define DISABLE_WRITE_PROTECT WRITE_PROTECT_PORT |= WRITE_PROTECT_BIT
+#define WRITE_PROTECT_OUT WRITE_PROTECT_DIR |= WRITE_PROTECT_BIT
 
 // Function Protoypes
 

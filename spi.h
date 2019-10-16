@@ -40,6 +40,7 @@
 
 #define TOGGLE_SCLK                 SPI_SCK_PORT ^= SPI_SCK_BIT
 #define TURN_OFF_SCLK               SPI_SCK_PORT  &= ~SPI_SCK_BIT
+#define TURN_ON_SCLK                SPI_SCK_PORT  |= SPI_SCK_BIT
 
 /*
  * This function initializes all hardware and port pins to support SPI.

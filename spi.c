@@ -3,6 +3,8 @@
 void InitializeSPI()
 {	
     SPI_SCK_DDR |= SPI_SCK_BIT;
+    USCIB0_MOSI_DDR |= USCIB0_MOSI_BIT;
+    USCIB0_MISO_DDR &= ~USCIB0_MISO_BIT;
 }
 
 void SPISendByte(unsigned char SendValue)
@@ -29,7 +31,16 @@ void SPISendByte(unsigned char SendValue)
 
 unsigned char SPIReceiveByte()
 {
+    TURN_OFF_SCLK;
 	unsigned char ReceiveValue = 0;
+	for(int i = 0; i < 8; i++){
+	    //Read output.
+	    //volatile int test = USCIB0_MISO_PORT & USCIB0_MISO_BIT;
+	    ReceiveValue = ReceiveValue << 1;
+	    ReceiveValue |= (USCIB0_MISO_PORT & USCIB0_MISO_BIT) >> (USCIB0_MISO_PIN);
+	    TOGGLE_SCLK;
+	    TOGGLE_SCLK;
+	}
 
 	return ReceiveValue;
 }
