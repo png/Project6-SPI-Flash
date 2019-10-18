@@ -31,22 +31,31 @@ int main(void)
 
     unsigned char READ_U3[1] = {0x00};
 
+    SetBlockProtection(NONE, &U3);
+    ChipEraseFlashMemory(&U3);
+    STATUS_U3 = ReadFlashMemoryStatusRegister(&U3);
+
 	while (TRUE) {
 	    SPISendByte(READ_ID);
 	    //ID_U3 = ReadFlashMemoryID(&U3);
 	    //ID_U2 = ReadFlashMemoryID(&U2);
-
-        STATUS_U3 = ReadFlashMemoryStatusRegister(&U3);
 	    //printf("U3 Stat before: %c\n",STATUS_U3);
 	    //WriteFlashMemoryStatusRegister(0x08, &U3);
 	    //STATUS_U3 = ReadFlashMemoryStatusRegister(&U3);
-	    ChipEraseFlashMemory(&U3);
-	    ByteProgramFlashMemory((unsigned long)0x112233, 0xFF, &U3);
+	    //ByteProgramFlashMemory((unsigned long)0x0080, 0xFF, &U3);
+
+	    STATUS_U3 = ReadFlashMemoryStatusRegister(&U3);
 	    /*
 	     * void ReadFlashMemory(unsigned long StartAddress, unsigned char* DataValuesArray,
             unsigned int NumberOfDataValues, SerialFlash *Component, unsigned char ReadMode)
 	     */
-	    ReadFlashMemory((unsigned long)0x112233, READ_U3, 1, &U3, READ);
+	    ReadFlashMemory((unsigned long)0x0064, READ_U3, 1, &U3, READ);
+
+	    ByteProgramFlashMemory((unsigned long)0x0064, 0b01010101, &U3);
+
+	    ReadFlashMemory((unsigned long)0x0064, READ_U3, 1, &U3, READ);
+
+	    __nop();
 
 		TimeDelay(250,1000);
 	}

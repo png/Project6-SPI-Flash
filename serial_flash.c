@@ -91,6 +91,8 @@ void WriteFlashMemoryStatusRegister(unsigned char WriteValue,SerialFlash *Compon
     DISABLE_SERIAL_FLASH;
     TURN_ON_SCLK;
 
+    WaitForBusy(Component);
+
 }
 /*
  * This function reads from flash memory component Component, beginning at StartAddress,
@@ -140,6 +142,10 @@ unsigned int NumberOfDataValues, SerialFlash *Component, unsigned char ReadMode)
  */
 void ByteProgramFlashMemory(unsigned long MemoryAddress, unsigned char WriteValue, SerialFlash *Component)
 {
+    unsigned char busy;
+    do{
+        busy = FlashMemoryBusy(Component);
+    }while(busy > 0);
     //Just to enable write.
     ENABLE_SERIAL_FLASH;
     SPISendByte(WREN);
@@ -168,43 +174,87 @@ void ByteProgramFlashMemory(unsigned long MemoryAddress, unsigned char WriteValu
     ENABLE_SERIAL_FLASH;
     SPISendByte(WRDI);
     DISABLE_SERIAL_FLASH;
+
+    WaitForBusy(Component);
 }
 
 void AAIProgramFlashMemory(unsigned long StartAddress, unsigned char* DataValuesArray,
 unsigned int NumberOfDataValues, SerialFlash *Component)
 {
-//    ENABLE_SERIAL_FLASH;
-//    union LongToChar addr;
-//    addr.address = StartAddress;
-//    SPISendByte(AAI_PROGRAM);
-//
-//    SPISendByte((unsigned char)addr.bytes[2]);
-//    SPISendByte((unsigned char)addr.bytes[1]);
-//    SPISendByte((unsigned char)addr.bytes[0]);
-//
-//    DISABLE_SERIAL_FLASH;
+    ENABLE_SERIAL_FLASH;
+    SPISendByte(WREN);
+    DISABLE_SERIAL_FLASH;
+
+    ENABLE_SERIAL_FLASH;
+    union LongToChar addr;
+    addr.address = StartAddress;
+    SPISendByte(AAI_PROGRAM);
+
+    SPISendByte((unsigned char)addr.bytes[2]);
+    SPISendByte((unsigned char)addr.bytes[1]);
+    SPISendByte((unsigned char)addr.bytes[0]);
+
+    for(unsigned int i = 0; i < NumberOfDataValues; i++){
+        if (i > 0){
+            ENABLE_SERIAL_FLASH;
+            SPISendByte(AAI_Program);
+        }
+        SPISendByte(DataValuesArray[i]);
+        DISABLE_SERIAL_FLASH;
+        WaitForFlash(Component);
+    }
+    DISABLE_SERIAL_FLASH;
+
+    ENABLE_SERIAL_FLASH;
+    SPISendByte(WRDI);
+    DISABLE_SERIAL_FLASH;
+
+    //ReadFlashMemoryStatusRegister(Component);
+    WaitForFlash(Component);
 }
 
 void ChipEraseFlashMemory(SerialFlash *Component)
 {
     ENABLE_SERIAL_FLASH;
-    SetBlockProtection(NONE, Component);
-    SPISendByte(CHIP_ERASE);
-    char busy;
-    do{
-        busy = FlashMemoryBusy(Component);
-    }while(busy > 0);
+    SPISendByte(WREN);
     DISABLE_SERIAL_FLASH;
+
+    ENABLE_SERIAL_FLASH;
+    SPISendByte(CHIP_ERASE);
+    DISABLE_SERIAL_FLASH;
+
+    ENABLE_SERIAL_FLASH;
+    SPISendByte(WRDI);
+    DISABLE_SERIAL_FLASH;
+
+    WaitForBusy(Component);
 }
 
 void SectorBlockEraseFlashMemory(unsigned long StartAddress,SerialFlash *Component, unsigned char EraseMode)
 {
     ENABLE_SERIAL_FLASH;
-    //union LongToChar addr;
-    //addr.address = StartAddress;
-    SPISendByte(BYTE_PROGRAM);
-
+    SPISendByte(WREN);
     DISABLE_SERIAL_FLASH;
+
+    ENABLE_SERIAL_FLASH;
+
+    if(EraseMode == SECTOR_ERASE){
+        SPISendByte(SECTOR_ERASE);
+    }else if(EraseMode == BLOCK_ERASE){
+        SPISendByte(BLOCK_ERASE);
+    }
+    union LongToChar addr;
+    addr.address = StartAddress;
+    SPISendByte((unsigned char)addr.bytes[2]);
+    SPISendByte((unsigned char)addr.bytes[1]);
+    SPISendByte((unsigned char)addr.bytes[0]);
+    DISABLE_SERIAL_FLASH;
+
+    ENABLE_SERIAL_FLASH;
+    SPISendByte(WRDI);
+    DISABLE_SERIAL_FLASH;
+
+    WaitForBusy(Component);
 }
 /*
  * This function sets the block protection of flash memory component, Component, to
@@ -242,7 +292,15 @@ void SetBlockProtection(unsigned char ProtectionLevel,SerialFlash *Component)
 unsigned char FlashMemoryBusy(SerialFlash *Component)
 {
     unsigned char Busy = 0;
+
     Busy = ReadFlashMemoryStatusRegister(Component) & SR_BUSY;
 
     return Busy;
+}
+
+void WaitForBusy(SerialFlash *Component){
+    unsigned char busy;
+    do{
+        busy = FlashMemoryBusy(Component);
+    }while(busy > 0);
 }
