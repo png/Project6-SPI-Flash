@@ -185,6 +185,8 @@ unsigned int NumberOfDataValues, SerialFlash *Component)
     SPISendByte(WREN);
     DISABLE_SERIAL_FLASH;
 
+    TURN_OFF_SCLK;
+
     ENABLE_SERIAL_FLASH;
     union LongToChar addr;
     addr.address = StartAddress;
@@ -197,11 +199,12 @@ unsigned int NumberOfDataValues, SerialFlash *Component)
     for(unsigned int i = 0; i < NumberOfDataValues; i++){
         if (i > 0){
             ENABLE_SERIAL_FLASH;
-            SPISendByte(AAI_Program);
+            SPISendByte(AAI_PROGRAM);
         }
+        volatile unsigned char t = DataValuesArray[i];
         SPISendByte(DataValuesArray[i]);
         DISABLE_SERIAL_FLASH;
-        WaitForFlash(Component);
+        WaitForBusy(Component);
     }
     DISABLE_SERIAL_FLASH;
 
@@ -210,7 +213,7 @@ unsigned int NumberOfDataValues, SerialFlash *Component)
     DISABLE_SERIAL_FLASH;
 
     //ReadFlashMemoryStatusRegister(Component);
-    WaitForFlash(Component);
+    WaitForBusy(Component);
 }
 
 void ChipEraseFlashMemory(SerialFlash *Component)

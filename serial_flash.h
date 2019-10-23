@@ -186,4 +186,6 @@ void SectorBlockEraseFlashMemory(unsigned long StartAddress, SerialFlash *Compon
  */
 unsigned char FlashMemoryBusy(SerialFlash *Component);
 
+void WaitForBusy(SerialFlash *Component);
+
 #endif
