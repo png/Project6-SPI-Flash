@@ -5,7 +5,7 @@
 #include "timerA.h"
 
 // Used with the LFSR function
-#define DIVISOR_POLYNOMIAL 0xABCD
+#define DIVISOR_POLYNOMIAL 0xB400
 #define INITIAL_LFSR_STATE 0x0001
 
 #define BUFFER_SIZE 2
@@ -101,19 +101,20 @@ int main(void)
 	    __nop();
 
 	    LFSRState = INITIAL_LFSR_STATE;
-	    volatile unsigned int checksum_LFSR = 0xFFFF;
-	    volatile unsigned int checksum_RET_U3 = 0xFFFF;
+	    volatile unsigned int checksum_LFSR = 0xABCD;
+	    volatile unsigned int checksum_RET_U3 = 0xABCD;
+	    checksum_RET_U2 = 0xABCD;
 	    for (unsigned long i = 0; i < BUFFER_SIZE; i++) readBuffer[i] = (char) 0;
         for (unsigned long i = 0; i < FLASH_MEMORY_SIZE; i+=BUFFER_SIZE){
-            checksum_LFSR ^= LFSRState;
+            checksum_LFSR = checksum_LFSR + (unsigned int)(LFSRState ^ LFSRState);
 
             ReadFlashMemory(i, readBuffer, BUFFER_SIZE, &U3, READ);
-            ret = (readBuffer[0] + (readBuffer[1] << 8));
-            checksum_RET_U3 ^= ret;
+            ret = (readBuffer[0] | (readBuffer[1] << 8));
+            checksum_RET_U3 = checksum_RET_U3 + (unsigned int)(LFSRState ^ ret);
 
             ReadFlashMemory(i, readBuffer, BUFFER_SIZE, &U2, READ);
-            ret = (readBuffer[0] + (readBuffer[1] << 8));
-            checksum_RET_U2 ^= ret;
+            ret = (readBuffer[0] | (readBuffer[1] << 8));
+            checksum_RET_U2 = checksum_RET_U2 + (unsigned int)(LFSRState ^ ret);
 
             LFSRState = LFSR(LFSRState, DIVISOR_POLYNOMIAL);
         }
